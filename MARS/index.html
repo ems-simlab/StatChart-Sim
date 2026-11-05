@@ -321,8 +321,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <script>
 
-const ALL_MEDS=["Acetaminophen","Albuterol","Allopurinol","Alprazolam","Amiodarone","Amlodipine","Amoxicillin","Apixaban","Aspirin","Atenolol","Atorvastatin","Azithromycin","Baclofen","Bupropion","Carvedilol","Celecoxib","Cephalexin","Citalopram","Clonazepam","Clonidine","Clopidogrel","Cyclobenzaprine","Digoxin","Diltiazem","Donepezil","Duloxetine","Enalapril","Escitalopram","Famotidine","Fluoxetine","Furosemide","Gabapentin","Glipizide","Hydralazine","Hydrochlorothiazide","Hydrocodone/APAP","Ibuprofen","Insulin Glargine","Isosorbide Mononitrate","Levetiracetam","Levothyroxine","Lisinopril","Lithium","Lorazepam","Losartan","Meloxicam","Metformin","Methylprednisolone","Metoprolol Succinate","Montelukast","Naproxen","Nitroglycerin SL","Omeprazole","Ondansetron","Oxycodone/APAP","Pantoprazole","Paroxetine","Phenytoin","Potassium Chloride","Pravastatin","Prednisone","Quetiapine","Rivaroxaban","Sertraline","Spironolactone","Tamsulosin","Topiramate","Tramadol","Trazodone","Valsartan","Venlafaxine","Warfarin"];
-const MED_DB={
+const ALL_MEDS=["Acetaminophen","Albuterol","Allopurinol","Alprazolam","Amiodarone","Amitriptyline","Amlodipine","Amoxapine","Amoxicillin","Apixaban","Aspirin","Atenolol","Atorvastatin","Azithromycin","Baclofen","Bupropion","Carvedilol","Celecoxib","Cephalexin","Citalopram","Clomipramine","Clonazepam","Clonidine","Clopidogrel","Cyclobenzaprine","Desipramine","Digoxin","Diltiazem","Donepezil","Doxepin","Duloxetine","Enalapril","Escitalopram","Famotidine","Fluoxetine","Furosemide","Gabapentin","Glipizide","Hydralazine","Hydrochlorothiazide","Hydrocodone/APAP","Ibuprofen","Imipramine","Insulin Glargine","Isosorbide Mononitrate","Levetiracetam","Levothyroxine","Lisinopril","Lithium","Lorazepam","Losartan","Meloxicam","Metformin","Methylprednisolone","Metoprolol Succinate","Montelukast","Naproxen","Nitroglycerin SL","Nortriptyline","Omeprazole","Ondansetron","Oxycodone/APAP","Pantoprazole","Paroxetine","Phenytoin","Potassium Chloride","Pravastatin","Prednisone","Protriptyline","Quetiapine","Rivaroxaban","Sertraline","Spironolactone","Tamsulosin","Topiramate","Tramadol","Trazodone","Trimipramine","Valsartan","Venlafaxine","Warfarin"];const MED_DB={
+"Amitriptyline":{str:"25 mg",route:"PO",freq:"at bedtime",base:25,unit:"mg"},
+"Amoxapine":{str:"50 mg",route:"PO",freq:"BID",base:50,unit:"mg"},
+"Clomipramine":{str:"25 mg",route:"PO",freq:"once daily",base:25,unit:"mg"},
+"Desipramine":{str:"25 mg",route:"PO",freq:"once daily",base:25,unit:"mg"},
+"Doxepin":{str:"25 mg",route:"PO",freq:"at bedtime",base:25,unit:"mg"},
+"Imipramine":{str:"25 mg",route:"PO",freq:"at bedtime",base:25,unit:"mg"},
+"Nortriptyline":{str:"25 mg",route:"PO",freq:"at bedtime",base:25,unit:"mg"},
+"Protriptyline":{str:"5 mg",route:"PO",freq:"TID",base:5,unit:"mg"},
+"Trimipramine":{str:"25 mg",route:"PO",freq:"at bedtime",base:25,unit:"mg"},
 "Acetaminophen":{str:"500 mg",route:"PO",freq:"q6h PRN pain/fever",base:500,unit:"mg"},
 "Albuterol":{str:"2.5 mg",route:"NEB",freq:"q4–6h PRN wheezing",base:2.5,unit:"mg"},
 "Allopurinol":{str:"300 mg",route:"PO",freq:"once daily",base:300,unit:"mg"},
@@ -405,6 +413,15 @@ function genRecord(){document.getElementById('recordNum').value='MR-'+String(Mat
 
 // ── Medication → Diagnosis mapping ───────────────────────
 const MED_DIAGNOSES={
+"Amitriptyline":["Major Depressive Disorder"],
+"Amoxapine":["Major Depressive Disorder"],
+"Clomipramine":["Obsessive-Compulsive Disorder"],
+"Desipramine":["Major Depressive Disorder"],
+"Doxepin":["Depression with Anxiety"],
+"Imipramine":["Major Depressive Disorder"],
+"Nortriptyline":["Major Depressive Disorder"],
+"Proptriptyline":["Major Depressive Disorder"],
+"Trimipramine":["Major Depressive Disorder"],
 "Acetaminophen":["Pain Management"],
 "Albuterol":["Asthma","COPD"],
 "Allopurinol":["Gout","Hyperuricemia"],
