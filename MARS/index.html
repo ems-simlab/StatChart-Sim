@@ -54,6 +54,13 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .med-count{font-size:.72rem;color:var(--gray-500);margin-bottom:6px}
 .med-count .count-num{font-weight:700;color:var(--navy)}
 .med-count .count-warn{color:var(--danger);font-weight:600}
+.target-dx-list{margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.target-dx-list:empty{display:none}
+.target-dx-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:6px 8px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);font-size:.77rem}
+.target-dx-name{font-weight:600;color:var(--navy);min-width:110px}
+.target-dx-row select{flex:1;min-width:150px;font-size:.75rem;padding:3px 6px}
+.target-dx-single{flex:1;min-width:150px;color:var(--gray-700)}
+.target-dx-info{flex-basis:100%;font-size:.7rem;color:var(--gray-500)}
 .level-group{display:flex;gap:8px}
 .level-pill{flex:1;text-align:center;padding:7px 4px;border:1.5px solid var(--gray-300);border-radius:var(--radius);font-size:.77rem;font-weight:600;cursor:pointer;transition:all .12s;background:var(--gray-100);user-select:none}
 .level-pill input{display:none}
@@ -267,6 +274,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
         <input type="text" class="med-search-input" id="medSearch" placeholder="🔍  Search medications…" oninput="filterMeds()">
         <div class="med-count" id="medCount"><span class="count-num">0</span> of 5 target meds selected</div>
         <div class="med-grid" id="medGrid"></div>
+        <div class="target-dx-list" id="targetDxList"></div>
       </div>
     </div>
 
@@ -413,14 +421,14 @@ function genRecord(){document.getElementById('recordNum').value='MR-'+String(Mat
 
 // ── Medication → Diagnosis mapping ───────────────────────
 const MED_DIAGNOSES={
-"Amitriptyline":["Major Depressive Disorder"],
+"Amitriptyline":["Major Depressive Disorder","Neuropathic Pain","Migraine Prophylaxis"],
 "Amoxapine":["Major Depressive Disorder"],
 "Clomipramine":["Obsessive-Compulsive Disorder"],
 "Desipramine":["Major Depressive Disorder"],
-"Doxepin":["Depression with Anxiety"],
+"Doxepin":["Depression with Anxiety","Insomnia"],
 "Imipramine":["Major Depressive Disorder"],
-"Nortriptyline":["Major Depressive Disorder"],
-"Proptriptyline":["Major Depressive Disorder"],
+"Nortriptyline":["Major Depressive Disorder","Neuropathic Pain"],
+"Protriptyline":["Major Depressive Disorder"],
 "Trimipramine":["Major Depressive Disorder"],
 "Acetaminophen":["Pain Management"],
 "Albuterol":["Asthma","COPD"],
@@ -496,9 +504,62 @@ const MED_DIAGNOSES={
 "Warfarin":["Atrial Fibrillation","DVT/PE","Anticoagulation Therapy"]
 };
 
+// ── Per-diagnosis dose overrides ─────────────────────────
+// Only needed where the dose/frequency differs by indication.
+// Any field left out falls back to the MED_DB entry.
+const MED_DX_DOSE={
+"Amitriptyline":{"Neuropathic Pain":{str:"10 mg",base:10},"Migraine Prophylaxis":{str:"10 mg",base:10}},
+"Doxepin":{"Insomnia":{str:"6 mg",base:6}},
+"Nortriptyline":{"Neuropathic Pain":{str:"10 mg",base:10}},
+"Trazodone":{"Major Depressive Disorder":{str:"150 mg",base:150,freq:"at bedtime"}},
+"Quetiapine":{"Bipolar Disorder":{str:"300 mg",base:300,freq:"at bedtime"},
+              "Major Depressive Disorder":{str:"150 mg",base:150,freq:"at bedtime"},
+              "Schizophrenia":{str:"200 mg",base:200,freq:"BID"}}
+};
+
+// Pick ONE diagnosis per med. Seeded by patient + med name so the choice
+// stays the same across live re-renders but changes for a new patient.
+function pickDiagnosis(name,seedKey){
+  const list=MED_DIAGNOSES[name]||[];
+  if(list.length<=1)return list[0]||'';
+  const r=makeSRNG(strHash(seedKey+'|'+name))();
+  return list[Math.floor(r*list.length)];
+}
+
+// ── Per-target-med diagnosis choice ──────────────────────
+// TARGET_DX[name] = chosen diagnosis, or '' / missing for Random.
+const TARGET_DX={};
+function resolveDx(name,seedKey){return TARGET_DX[name]||pickDiagnosis(name,seedKey);}
+function doseFor(name,dx){const b=MED_DB[name];if(!b)return'';const d={...b,...((MED_DX_DOSE[name]||{})[dx]||{})};return`${d.str} ${d.route} ${d.freq}`;}
+function renderTargetDxList(){
+  const box=document.getElementById('targetDxList');if(!box)return;
+  const targets=getTargetMeds().slice(0,5);
+  Object.keys(TARGET_DX).forEach(k=>{if(!targets.includes(k))delete TARGET_DX[k];});
+  box.innerHTML=targets.map(m=>{
+    const list=MED_DIAGNOSES[m]||[];
+    let ctl;
+    if(list.length>1){
+      const cur=TARGET_DX[m]||'';
+      ctl=`<select data-med="${esc(m)}" onchange="setTargetDx(this)"><option value="">Random diagnosis</option>${list.map(d=>`<option value="${esc(d)}"${d===cur?' selected':''}>${esc(d)}</option>`).join('')}</select>`;
+    }else{
+      ctl=`<span class="target-dx-single">${esc(list[0]||'No diagnosis listed')}</span>`;
+    }
+    return`<div class="target-dx-row"><span class="target-dx-name">${esc(m)}</span>${ctl}<span class="target-dx-info" data-info="${esc(m)}"></span></div>`;
+  }).join('');
+  updateTargetDxInfo();
+}
+function setTargetDx(sel){const m=sel.dataset.med;if(sel.value)TARGET_DX[m]=sel.value;else delete TARGET_DX[m];updateTargetDxInfo();liveRender();}
+function updateTargetDxInfo(){
+  const seedKey=document.getElementById('patientName').value||'';
+  document.querySelectorAll('.target-dx-info').forEach(el=>{
+    const m=el.dataset.info,dx=resolveDx(m,seedKey),random=!TARGET_DX[m]&&(MED_DIAGNOSES[m]||[]).length>1;
+    el.textContent=(random?`Random pick for this patient: ${dx} · `:'')+doseFor(m,dx);
+  });
+}
+
 function buildDiagnosisFromMeds(meds){
   const counts={};
-  meds.forEach(m=>{(MED_DIAGNOSES[m.name]||[]).forEach(d=>{counts[d]=(counts[d]||0)+1;});});
+  meds.forEach(m=>{if(m.dx)counts[m.dx]=(counts[m.dx]||0)+1;});
   return Object.entries(counts)
     .sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))
     .map(([d])=>d);
@@ -508,12 +569,12 @@ function buildDiagnosisFromMeds(meds){
 function buildMedGrid(){const g=document.getElementById('medGrid');g.innerHTML='';ALL_MEDS.forEach(m=>{const l=document.createElement('label');l.className='med-item';l.dataset.med=m;l.innerHTML=`<input type="checkbox" value="${esc(m)}" onchange="onMedChange()"><span>${esc(m)}</span>`;g.appendChild(l)})}
 function filterMeds(){const q=document.getElementById('medSearch').value.toLowerCase();document.querySelectorAll('.med-item').forEach(el=>{el.style.display=el.dataset.med.toLowerCase().includes(q)?'flex':'none'})}
 function getTargetMeds(){return[...document.querySelectorAll('.med-item input:checked')].map(c=>c.value)}
-function onMedChange(){const c=getTargetMeds(),n=c.length,el=document.getElementById('medCount');el.innerHTML=n>5?`<span class="count-warn">⚠ Max 5 — please deselect one</span>`:`<span class="count-num">${n}</span> of 5 target meds selected`;document.querySelectorAll('.med-item').forEach(it=>{const cb=it.querySelector('input');it.classList.toggle('is-target',cb.checked);cb.disabled=(n>=5&&!cb.checked)});liveRender()}
+function onMedChange(){const c=getTargetMeds(),n=c.length,el=document.getElementById('medCount');el.innerHTML=n>5?`<span class="count-warn">⚠ Max 5 — please deselect one</span>`:`<span class="count-num">${n}</span> of 5 target meds selected`;document.querySelectorAll('.med-item').forEach(it=>{const cb=it.querySelector('input');it.classList.toggle('is-target',cb.checked);cb.disabled=(n>=5&&!cb.checked)});renderTargetDxList();liveRender()}
 
 // MED ERROR
-function applyMedError(name,lvl){const db=MED_DB[name];if(!db)return{doseStr:'(unlisted)',route:'',freq:'',errored:false};const rate=lvl==='subtle'?0.10:lvl==='chaos'?0.30:0;const err=Math.random()<rate;let ds=db.str;if(err){const mult=[1.5,2.0,0.5,3.0][Math.floor(Math.random()*4)];let v=db.base*mult,f;if(['mcg','mEq','units'].includes(db.unit))f=Math.round(v)+' '+db.unit;else if(v<1)f=parseFloat(v.toFixed(3))+' '+db.unit;else if(v>=100)f=Math.round(v)+' '+db.unit;else f=parseFloat(v.toFixed(2)).toString()+' '+db.unit;ds=f}return{doseStr:ds,route:db.route,freq:db.freq,errored:err}}
+function applyMedError(name,lvl,dx){const base=MED_DB[name];if(!base)return{doseStr:'(unlisted)',route:'',freq:'',errored:false};const db={...base,...((MED_DX_DOSE[name]||{})[dx]||{})};const rate=lvl==='subtle'?0.10:lvl==='chaos'?0.30:0;const err=Math.random()<rate;let ds=db.str;if(err){const mult=[1.5,2.0,0.5,3.0][Math.floor(Math.random()*4)];let v=db.base*mult,f;if(['mcg','mEq','units'].includes(db.unit))f=Math.round(v)+' '+db.unit;else if(v<1)f=parseFloat(v.toFixed(3))+' '+db.unit;else if(v>=100)f=Math.round(v)+' '+db.unit;else f=parseFloat(v.toFixed(2)).toString()+' '+db.unit;ds=f}return{doseStr:ds,route:db.route,freq:db.freq,errored:err}}
 function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function buildMedList(target,noise,errLvl){let fin=[...target];if(noise!=='none'){const pool=shuffle(ALL_MEDS.filter(m=>!target.includes(m)));fin=[...fin,...pool.slice(0,noise==='moderate'?Math.floor(Math.random()*6)+5:Math.floor(Math.random()*16)+10)]}const nm=fin.slice(target.length).sort();fin=[...target,...nm];return fin.map(m=>{const isT=target.includes(m);return{name:m,isTarget:isT,...applyMedError(m,isT?errLvl:'none')}})}
+function buildMedList(target,noise,errLvl,seedKey=''){let fin=[...target];if(noise!=='none'){const pool=shuffle(ALL_MEDS.filter(m=>!target.includes(m)));fin=[...fin,...pool.slice(0,noise==='moderate'?Math.floor(Math.random()*6)+5:Math.floor(Math.random()*16)+10)]}const nm=fin.slice(target.length).sort();fin=[...target,...nm];return fin.map(m=>{const isT=target.includes(m);const dx=isT?resolveDx(m,seedKey):pickDiagnosis(m,seedKey);return{name:m,isTarget:isT,dx,...applyMedError(m,isT?errLvl:'none',dx)}})}
 
 // MARS ENGINE
 function strHash(s){let h=0;for(let i=0;i<s.length;i++)h=Math.imul(31,h)+s.charCodeAt(i)|0;return Math.abs(h)}
@@ -530,13 +591,14 @@ function parseFreq(freq){
   if(f.includes('every evening'))return{times:['2000'],isPRN:false};
   return{times:['0800'],isPRN:false};
 }
-function prnReason(freq){const f=freq.toLowerCase();if(f.includes('pain'))return'Patient c/o pain';if(f.includes('nausea')||f.includes('vomit'))return'Nausea/vomiting';if(f.includes('wheez'))return'Wheezing/dyspnea';if(f.includes('chest'))return'Chest discomfort';if(f.includes('anxiety')||f.includes('agit'))return'Anxiety/restlessness';if(f.includes('fever'))return'Fever/discomfort';return'Patient request'}
-function prnResult(freq){const f=freq.toLowerCase();if(f.includes('pain'))return'Mild relief reported';if(f.includes('nausea'))return'Nausea improved';if(f.includes('wheez'))return'Partial relief noted';if(f.includes('chest'))return'Discomfort resolved';if(f.includes('anxiety'))return'Patient calmer';return'Tolerated well'}
+function prnReason(freq,dx=''){const f=freq.toLowerCase();if(/insomnia/i.test(dx))return'Unable to sleep';if(f.includes('pain'))return'Patient c/o pain';if(f.includes('nausea')||f.includes('vomit'))return'Nausea/vomiting';if(f.includes('wheez'))return'Wheezing/dyspnea';if(f.includes('chest'))return'Chest discomfort';if(f.includes('anxiety')||f.includes('agit'))return'Anxiety/restlessness';if(f.includes('fever'))return'Fever/discomfort';return'Patient request'}
+function prnResult(freq,dx=''){const f=freq.toLowerCase();if(/insomnia/i.test(dx))return'Slept, no distress';if(f.includes('pain'))return'Mild relief reported';if(f.includes('nausea'))return'Nausea improved';if(f.includes('wheez'))return'Partial relief noted';if(f.includes('chest'))return'Discomfort resolved';if(f.includes('anxiety'))return'Patient calmer';return'Tolerated well'}
 function dayHead(d,isLast){const n=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];const dt=`${d.getMonth()+1}/${d.getDate()}`;return isLast?`<th class="mars-day-head mars-scenario-day">${n}<br>${dt}<br><span class="scenario-day-tag">SIM DAY</span></th>`:`<th class="mars-day-head">${n}<br>${dt}</th>`}
 
 function generateMARS(){
   const DAYS=7;
-  const meds=buildMedList(getTargetMeds(),document.getElementById('medNoise').value,document.querySelector('input[name=medError]:checked')?.value||'none');
+  updateTargetDxInfo();
+  const meds=buildMedList(getTargetMeds(),document.getElementById('medNoise').value,document.querySelector('input[name=medError]:checked')?.value||'none',document.getElementById('patientName').value||'');
   const compliance=document.getElementById('marsCompliance').value;
   const initials=(document.getElementById('marsInitials').value||'RN').toUpperCase();
   const callTimeRaw=document.getElementById('callTime').value;
@@ -569,20 +631,20 @@ function generateMARS(){
   const medRows=[],prnLog=[];
   meds.forEach(med=>{
     const db=MED_DB[med.name];if(!db)return;
-    const{times,isPRN}=parseFreq(db.freq);
+    const{times,isPRN}=parseFreq(med.freq);
     if(isPRN){
       const cnt=compliance==='compliant'?Math.floor(rng()*2):compliance==='mostly'?Math.floor(rng()*3)+1:Math.floor(rng()*4)+2;
       for(let i=0;i<cnt;i++){
         const di=compliance==='noncompliant'?DAYS-1-Math.floor(rng()*2):Math.floor(rng()*DAYS);
         const hr=Math.floor(rng()*16)+6,mn=Math.floor(rng()*6)*10;
         if(di===DAYS-1&&(hr*100+mn)>=callTimeInt)continue;
-        prnLog.push({di,date:days[di],time:`${String(hr).padStart(2,'0')}${String(mn).padStart(2,'0')}`,name:med.name,dose:med.doseStr+' '+db.route,reason:prnReason(db.freq),result:prnResult(db.freq),initials});
+        prnLog.push({di,date:days[di],time:`${String(hr).padStart(2,'0')}${String(mn).padStart(2,'0')}`,name:med.name,dose:med.doseStr+' '+med.route,reason:prnReason(med.freq,med.dx),result:prnResult(med.freq,med.dx),initials});
       }
       return;
     }
     if(!times.length)return;
     const given=times.map(t=>Array.from({length:DAYS},(_,di)=>{if(di===DAYS-1&&parseInt(t)>=callTimeInt)return null;const late=di>=DAYS-2,eve=parseInt(t)>=1800;const p=compliance==='compliant'?0.96:compliance==='mostly'?(eve?0.74:0.82):(late?0.28:0.54);return rng()<p;}));
-    medRows.push({name:med.name,dose:med.doseStr,route:db.route,times,given,isTarget:med.isTarget,errored:med.errored});
+    medRows.push({name:med.name,dx:med.dx,dose:med.doseStr,route:med.route,times,given,isTarget:med.isTarget,errored:med.errored});
   });
   prnLog.sort((a,b)=>a.di-b.di||a.time.localeCompare(b.time));
 
@@ -687,6 +749,7 @@ function resetForm(){
   document.querySelectorAll('.med-item').forEach(i=>i.classList.remove('is-target'));
   document.getElementById('ageDisplay').value='';
   document.getElementById('medCount').innerHTML='<span class="count-num">0</span> of 5 target meds selected';
+  Object.keys(TARGET_DX).forEach(k=>delete TARGET_DX[k]);renderTargetDxList();
   genRecord();
   document.getElementById('previewContent').innerHTML='<div class="preview-empty"><svg width="60" height="60" viewBox="0 0 64 64" fill="none"><rect x="8" y="4" width="40" height="52" rx="3" stroke="#8892A4" stroke-width="2"/><line x1="16" y1="16" x2="40" y2="16" stroke="#8892A4" stroke-width="2"/><line x1="16" y1="24" x2="40" y2="24" stroke="#8892A4" stroke-width="2"/><line x1="16" y1="32" x2="32" y2="32" stroke="#8892A4" stroke-width="2"/><circle cx="48" cy="48" r="12" fill="#E8ECF2" stroke="#8892A4" stroke-width="2"/><line x1="48" y1="43" x2="48" y2="53" stroke="#8892A4" stroke-width="2"/><line x1="43" y1="48" x2="53" y2="48" stroke="#8892A4" stroke-width="2"/></svg><p>Fill in the form and click <strong>Generate MARS Sheet</strong>.</p></div>';
 }
