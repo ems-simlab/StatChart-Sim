@@ -1,4 +1,4 @@
-# __**StatChart-Sim&trade&**__
+# __**StatChart-Sim&trade;**__
 
 A set of self-contained web tools that lets EMS instructors quickly generate and print standardized, high-fidelity **clinical paperwork** for pre-hospital simulated scenarios. 
 
