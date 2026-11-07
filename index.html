@@ -1,123 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StatChart-Sim | Simulation Portal</title>
-    <style>
-        :root {
-            --primary: #007bff;
-            --dark: #212529;
-            --light: #f8f9fa;
-            --success: #28a745;
-            --warning: #ffc107;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--light);
-            color: var(--dark);
-        }
-        header {
-            background-color: var(--dark);
-            color: white;
-            padding: 2rem 1rem;
-            text-align: center;
-        }
-        header h1 { margin: 0; font-size: 2.5rem; }
-        header p { margin: 0.5rem 0 0 0; opacity: 0.8; }
-        .container {
-            max-width: 1000px;
-            margin: 3rem auto;
-            padding: 0 1rem;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            border-top: 5px solid var(--primary);
-        }
-        .card.wip { border-top-color: var(--warning); }
-        .card h2 { margin-top: 0; }
-        .card p { flex-grow: 1; color: #6c757d; line-height: 1.5; }
-        .btn {
-            display: inline-block;
-            background-color: var(--primary);
-            color: white;
-            text-decoration: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .btn:hover { background-color: #0056b3; }
-        .btn.disabled {
-            background-color: #e9ecef;
-            color: #6c757d;
-            cursor: not-allowed;
-        }
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            align-self: flex-start;
-        }
-        .badge.active { background-color: #d4edda; color: #155724; }
-        .badge.pending { background-color: #fff3cd; color: #856404; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StatChart-Sim | Simulation paperwork for EMS training</title>
+<meta name="description" content="Free browser tools for EMS instructors to generate and print fictional discharge summaries, medication administration records and DNR/POLST forms for simulation.">
+<link rel="icon" href="./assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2A4A;          /* navy, shared with the generators */
+  --ink-soft:#4A5568;
+  --table:#DCE2EA;        /* the surface the paper props sit on */
+  --paper:#FBFCFD;
+  --rule:#C9D3E1;         /* chart gridlines */
+  --gold:#C9871E;         /* shared accent */
+  --pink:#F7B3D0;         /* POLST-style form stock */
+  --alert:#C0392B;
+  --serif:'Libre Baskerville',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--sans);font-size:1.0625rem;line-height:1.6;color:var(--ink);background:var(--paper)}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ── Header ─────────────────────────────── */
+.site-head{background:var(--ink);color:#fff}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:14px;padding-bottom:14px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:600;font-size:1.05rem;letter-spacing:.01em}
+.brand img{width:40px;height:auto}
+.head-link{font-size:.95rem;text-decoration:none;opacity:.85;border-bottom:1px solid transparent}
+.head-link:hover{opacity:1;border-bottom-color:var(--gold)}
+
+/* ── Hero ───────────────────────────────── */
+.hero{background:var(--table);overflow:hidden;
+  background-image:radial-gradient(rgba(27,42,74,.07) 1px,transparent 1px);background-size:18px 18px}
+.hero .wrap{display:grid;grid-template-columns:1fr 1.05fr;gap:48px;align-items:center;padding-top:72px;padding-bottom:88px}
+.hero h1{font-family:var(--serif);font-weight:700;font-size:clamp(2.2rem,4.6vw,3.6rem);line-height:1.12;letter-spacing:-.01em;margin:0 0 22px;max-width:14ch}
+.hero p{margin:0 0 30px;max-width:46ch;color:var(--ink-soft);font-size:1.125rem}
+.actions{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-block;padding:12px 22px;border-radius:6px;font-weight:600;font-size:1rem;text-decoration:none;border:2px solid var(--ink);transition:background .15s,color .15s}
+.btn-solid{background:var(--ink);color:#fff}
+.btn-solid:hover{background:#253660;border-color:#253660}
+.btn-line{background:transparent;color:var(--ink)}
+.btn-line:hover{background:var(--ink);color:#fff}
+
+/* ── Paper props (decorative) ───────────── */
+.stack{position:relative;height:440px}
+.sheet{position:absolute;width:280px;height:362px;background:var(--paper);border-radius:2px;
+  box-shadow:0 1px 1px rgba(27,42,74,.08),0 10px 24px rgba(27,42,74,.16);padding:18px 18px 16px;font-size:7px;color:var(--ink);line-height:1.3}
+.stack .sheet{left:50%;top:50%;margin:-181px 0 0 -140px;animation:fan .9s cubic-bezier(.2,.8,.2,1) .15s both}
+.stack .s1{--to:translate(-150px,18px) rotate(-9deg)}
+.stack .s2{--to:translate(0,-14px) rotate(1.5deg);z-index:2}
+.stack .s3{--to:translate(150px,24px) rotate(8deg);z-index:1}
+.stack .sheet{transform:var(--to)}
+@keyframes fan{from{transform:translate(0,30px) rotate(0)}to{transform:var(--to)}}
+.clip{position:absolute;top:-14px;left:50%;width:90px;height:26px;margin-left:-45px;background:#8892A4;border-radius:5px 5px 3px 3px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+
+/* generic sheet parts */
+.bar{height:6px;background:var(--ink);margin:-18px -18px 12px}
+.ttl{font-family:var(--serif);font-weight:700;font-size:10px;margin-bottom:8px}
+.ln{height:4px;background:var(--rule);border-radius:2px;margin:5px 0}
+.ln.w90{width:90%}.ln.w75{width:75%}.ln.w60{width:60%}.ln.w40{width:40%}
+.kv{display:grid;grid-template-columns:52px 1fr;gap:4px 8px;align-items:center;margin:8px 0 10px}
+.kv b{font-weight:600;font-size:6.5px;color:var(--ink-soft)}
+.kv span{height:4px;background:var(--rule);border-radius:2px}
+.sect{font-weight:700;font-size:7px;margin:12px 0 4px;padding-bottom:2px;border-bottom:1px solid var(--rule)}
+
+/* MAR grid */
+.mar{display:grid;grid-template-columns:62px repeat(7,1fr);border-top:1px solid var(--rule);border-left:1px solid var(--rule);margin-top:8px}
+.mar div{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);height:15px;font-size:6px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.mar .nm{justify-content:flex-start;padding-left:3px;font-weight:600}
+.mar .hd{background:#EDF0F5;font-size:5.5px}
+.mar .tg{background:rgba(201,135,30,.18)}
+.mar .miss{color:var(--alert)}
+.mar .miss::before{content:"";width:9px;height:9px;border:1px solid var(--alert);border-radius:50%;position:absolute}
+.mar .miss{position:relative}
+
+/* POLST-style sheet */
+.sheet.pink{background:var(--pink)}
+.pink .bar{background:#8E2A5A}
+.box{border:1px solid rgba(27,42,74,.55);margin-top:7px;padding:5px 6px 6px;position:relative}
+.box .lt{position:absolute;left:-1px;top:-1px;width:13px;height:13px;background:var(--ink);color:#fff;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.box .bh{margin-left:16px;font-weight:700;font-size:6.5px;margin-bottom:4px}
+.cb{display:flex;align-items:center;gap:5px;margin:3px 0}
+.cb i{width:7px;height:7px;border:1px solid var(--ink);flex-shrink:0;position:relative}
+.cb i.on::after{content:"";position:absolute;left:1px;top:-1px;width:3px;height:5px;border:solid var(--ink);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.cb .ln{flex:1;margin:0;background:rgba(27,42,74,.25)}
+.sig{margin-top:12px;border-top:1px solid var(--ink);padding-top:2px;font-size:5.5px;color:var(--ink-soft);width:60%}
+
+/* ── Tools ──────────────────────────────── */
+section{padding:88px 0}
+.sec-head{max-width:640px;margin-bottom:48px}
+.sec-head h2{font-family:var(--serif);font-size:clamp(1.7rem,3vw,2.3rem);line-height:1.2;margin:0 0 12px}
+.sec-head p{margin:0;color:var(--ink-soft)}
+.tool{display:grid;grid-template-columns:220px 1fr;gap:48px;align-items:center;padding:40px 0;border-top:1px solid var(--rule)}
+.tool:last-child{border-bottom:1px solid var(--rule)}
+.thumb{position:relative;height:200px;background:var(--table);border-radius:6px;overflow:hidden}
+.thumb .sheet{left:50%;top:22px;transform:translateX(-50%) scale(.52);transform-origin:top center;box-shadow:0 6px 18px rgba(27,42,74,.18)}
+.tool h3{font-family:var(--serif);font-size:1.5rem;line-height:1.25;margin:0 0 10px}
+.tool p{margin:0 0 10px;max-width:62ch}
+.tool .practice{color:var(--ink-soft);font-size:.98rem;margin-bottom:20px}
+.tool .practice strong{color:var(--ink);font-weight:600}
+
+/* ── Facts ──────────────────────────────── */
+.facts{background:var(--ink);color:#fff}
+.facts .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+.facts h3{font-family:var(--serif);font-size:1.25rem;margin:0 0 8px;padding-top:16px;border-top:3px solid var(--gold)}
+.facts p{margin:0;opacity:.82;font-size:1rem}
+
+/* ── Disclaimer & footer ────────────────── */
+.notice{padding:72px 0}
+.notice .card{border-left:4px solid var(--alert);background:#fff;padding:24px 28px;max-width:760px;box-shadow:0 1px 3px rgba(27,42,74,.1)}
+.notice h2{font-family:var(--serif);font-size:1.3rem;margin:0 0 8px}
+.notice p{margin:0 0 8px;color:var(--ink-soft)}
+.notice p:last-child{margin:0}
+footer{background:var(--table);padding:40px 0;font-size:.92rem;color:var(--ink-soft)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:flex-start}
+footer p{margin:0 0 6px;max-width:64ch}
+footer nav{display:flex;gap:20px}
+
+/* ── Responsive ─────────────────────────── */
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr;padding-top:48px;padding-bottom:40px;gap:24px}
+  .stack{height:360px;transform:scale(.82);transform-origin:top center;margin:36px 0 -60px}
+  .facts .grid{grid-template-columns:1fr;gap:28px}
+}
+@media (max-width:640px){
+  .stack{transform:scale(.62);height:300px;margin:28px 0 -110px}
+  .tool{grid-template-columns:1fr;gap:20px}
+  .thumb{height:170px}
+  section{padding:60px 0}
+  .head-link{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .stack .sheet{animation:none}
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>StatChart-Sim</h1>
-        <p>MATC EMS Simulation Lab — Instructor Tool Dashboard</p>
-    </header>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="./assets/logo.png" alt="MATC Emergency Medical Services">StatChart-Sim</a>
+    <a class="head-link" href="https://github.com/sphyx42/StatChart-Sim">Source on GitHub</a>
+  </div>
+</header>
 
-    <div class="container">
-        <div class="grid">
-            
-            <div class="card">
-                <span class="badge active">Ready</span>
-                <h2>Discharge Summaries</h2>
-                <p>Generate high-fidelity hospital discharge paperwork and specialized clinic follow-up summaries to embed in patient environments.</p>
-                <a href="./discharge-summary/" class="btn">Launch Tool</a>
-            </div>
-
-            <div class="card">
-                <span class="badge active">Ready</span>
-                <h2>MARS Sheets</h2>
-                <p>Compile multi-page Medication Administration Records complete with background noise medications and customizable delivery errors.</p>
-                <a href="./MARS/" class="btn">Launch Tool</a>
-            </div>
-
-            <!--
-            <div class="card wip">
-                <span class="badge pending">Work In Progress</span>
-                <h2>Legal & DNR Directives</h2>
-                <p>Generate state-specific legal directives, POLST, and MOLST sheets to test student vigilance regarding resuscitation validity.</p>
-                <a href="#" class="btn disabled">Coming Soon</a>
-            </div> -->
-            <div class="card">
-                <span class="badge active">Ready</span>
-                <h2>Legal & DNR Directives</h2>
-                <p>Generate state-specific legal directives, POLST, and MOLST sheets to test student vigilance regarding resuscitation validity.</p>
-                <a href="./Legal/" class="btn">Launch Tool</a>
-            </div>
-        </div>
+<main>
+<div class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Paperwork for patients who don't exist.</h1>
+      <p>Generate the discharge summaries, medication records and end-of-life orders your paramedic students will find on scene. Print them, leave them with the simulator, and see who reads the fine print.</p>
+      <div class="actions">
+        <a class="btn btn-solid" href="#tools">Choose a generator</a>
+        <a class="btn btn-line" href="https://github.com/sphyx42/StatChart-Sim">View the source</a>
+      </div>
     </div>
+
+    <div class="stack" aria-hidden="true">
+      <!-- Discharge summary -->
+      <div class="sheet s1">
+        <div class="bar"></div>
+        <div class="ttl">Discharge Summary</div>
+        <div class="kv"><b>Admitted</b><span></span><b>Discharged</b><span></span><b>Attending</b><span></span></div>
+        <div class="sect">Hospital course</div>
+        <div class="ln"></div><div class="ln w90"></div><div class="ln"></div><div class="ln w60"></div>
+        <div class="sect">Discharge medications</div>
+        <div class="ln w75"></div><div class="ln w60"></div><div class="ln w75"></div>
+        <div class="sect">Follow-up</div>
+        <div class="ln w90"></div><div class="ln w40"></div>
+      </div>
+      <!-- MAR -->
+      <div class="sheet s2">
+        <div class="clip"></div>
+        <div class="bar"></div>
+        <div class="ttl">Medication Administration Record</div>
+        <div class="kv"><b>Patient</b><span></span><b>Allergies</b><span style="width:40%"></span></div>
+        <div class="mar">
+          <div class="nm hd">Medication</div><div class="hd">Mon</div><div class="hd">Tue</div><div class="hd">Wed</div><div class="hd">Thu</div><div class="hd">Fri</div><div class="hd">Sat</div><div class="hd">Sun</div>
+          <div class="nm">Furosemide</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div>
+          <div class="nm tg">Metoprolol</div><div class="tg">RN</div><div class="tg">RN</div><div class="tg">RN</div><div class="tg miss"></div><div class="tg">RN</div><div class="tg miss"></div><div class="tg miss"></div>
+          <div class="nm">Lisinopril</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+          <div class="nm">Apixaban</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+          <div class="nm">Doxepin</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+          <div class="nm">Potassium Cl</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+          <div class="nm">Atorvastatin</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+        </div>
+        <div class="sect">PRN log</div>
+        <div class="ln w90"></div><div class="ln w75"></div>
+      </div>
+      <!-- POLST-style order -->
+      <div class="sheet s3 pink">
+        <div class="bar"></div>
+        <div class="ttl">Physician Orders for Life-Sustaining Treatment</div>
+        <div class="box"><span class="lt">A</span><div class="bh">Cardiopulmonary resuscitation</div>
+          <div class="cb"><i></i><span class="ln"></span></div><div class="cb"><i class="on"></i><span class="ln w60"></span></div></div>
+        <div class="box"><span class="lt">B</span><div class="bh">Medical interventions</div>
+          <div class="cb"><i></i><span class="ln"></span></div><div class="cb"><i class="on"></i><span class="ln"></span></div><div class="cb"><i></i><span class="ln w60"></span></div></div>
+        <div class="box"><span class="lt">C</span><div class="bh">Artificial nutrition</div>
+          <div class="cb"><i class="on"></i><span class="ln w75"></span></div><div class="cb"><i></i><span class="ln w60"></span></div></div>
+        <div class="sig">Signature of physician</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="tools">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Three generators, one for each paper trail</h2>
+      <p>Fill in a patient, preview the document, and print it or save it as a PDF. Every generator opens in your browser with nothing to install.</p>
+    </div>
+
+    <article class="tool">
+      <div class="thumb" aria-hidden="true">
+        <div class="sheet">
+          <div class="bar"></div>
+          <div class="ttl">Discharge Summary</div>
+          <div class="kv"><b>Admitted</b><span></span><b>Discharged</b><span></span><b>Attending</b><span></span></div>
+          <div class="sect">Hospital course</div>
+          <div class="ln"></div><div class="ln w90"></div><div class="ln"></div><div class="ln w60"></div>
+          <div class="sect">Discharge medications</div>
+          <div class="ln w75"></div><div class="ln w60"></div>
+        </div>
+      </div>
+      <div>
+        <h3>Discharge summaries</h3>
+        <p>Hospital discharge paperwork and clinic follow-up summaries, with a recent stay, baseline history and home-care instructions.</p>
+        <p class="practice"><strong>Students practice:</strong> building a history from the papers a family hands them.</p>
+        <a class="btn btn-solid" href="./discharge-summary/">Open the discharge summary generator</a>
+      </div>
+    </article>
+
+    <article class="tool">
+      <div class="thumb" aria-hidden="true">
+        <div class="sheet">
+          <div class="bar"></div>
+          <div class="ttl">Medication Administration Record</div>
+          <div class="mar">
+            <div class="nm hd">Medication</div><div class="hd">Mon</div><div class="hd">Tue</div><div class="hd">Wed</div><div class="hd">Thu</div><div class="hd">Fri</div><div class="hd">Sat</div><div class="hd">Sun</div>
+            <div class="nm">Furosemide</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div>
+            <div class="nm tg">Metoprolol</div><div class="tg">RN</div><div class="tg">RN</div><div class="tg">RN</div><div class="tg miss"></div><div class="tg">RN</div><div class="tg miss"></div><div class="tg miss"></div>
+            <div class="nm">Lisinopril</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+            <div class="nm">Apixaban</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+            <div class="nm">Doxepin</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div>RN</div><div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>Medication administration records</h3>
+        <p>A week of scheduled doses and a PRN log, padded with as many background medications as you want. Choose each target med's diagnosis, set how compliant the patient has been, and add dosing errors that show on your screen but not on the printout.</p>
+        <p class="practice"><strong>Students practice:</strong> medication reconciliation and spotting polypharmacy problems.</p>
+        <a class="btn btn-solid" href="./MARS/">Open the MARS generator</a>
+      </div>
+    </article>
+
+    <article class="tool">
+      <div class="thumb" aria-hidden="true">
+        <div class="sheet pink">
+          <div class="bar"></div>
+          <div class="ttl">Physician Orders for Life-Sustaining Treatment</div>
+          <div class="box"><span class="lt">A</span><div class="bh">Cardiopulmonary resuscitation</div>
+            <div class="cb"><i></i><span class="ln"></span></div><div class="cb"><i class="on"></i><span class="ln w60"></span></div></div>
+          <div class="box"><span class="lt">B</span><div class="bh">Medical interventions</div>
+            <div class="cb"><i></i><span class="ln"></span></div><div class="cb"><i class="on"></i><span class="ln"></span></div></div>
+        </div>
+      </div>
+      <div>
+        <h3>DNR, POLST and MOLST orders</h3>
+        <p>State-specific legal directives and life-sustaining treatment orders, ready to tape to the fridge or tuck into a nursing-home chart.</p>
+        <p class="practice"><strong>Students practice:</strong> deciding whether a directive is valid and whether it applies before they start resuscitation.</p>
+        <a class="btn btn-solid" href="./Legal/">Open the legal documents generator</a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="facts">
+  <div class="wrap grid">
+    <div>
+      <h3>One file per tool</h3>
+      <p>Each generator is a single HTML page. There's no server, database or account to set up.</p>
+    </div>
+    <div>
+      <h3>Works offline</h3>
+      <p>Once a page has loaded, it keeps working without an internet connection, so it's fine in a sim lab or the back of an ambulance.</p>
+    </div>
+    <div>
+      <h3>Print or save as PDF</h3>
+      <p>Print straight from the browser, or save a PDF to reuse the same patient in future scenarios.</p>
+    </div>
+  </div>
+</section>
+
+<div class="notice">
+  <div class="wrap">
+    <div class="card" role="note">
+      <h2>For training use only</h2>
+      <p>Everything these tools produce is fictional. It isn't a medical record, medical advice or a clinical decision tool, and must never be used for real patient care or documentation.</p>
+      <p>Doses, vital signs and legal form text are plausible training defaults. Review them against your program's standards and local protocols before using them in class.</p>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>Built for the Milwaukee Area Technical College EMS and Paramedic Program. Source code licensed under <a href="https://github.com/sphyx42/StatChart-Sim/blob/main/LICENSE">GPL-3.0</a>.</p>
+      <p>The MATC EMS logo and Milwaukee Area Technical College names and marks belong to the College and aren't covered by the GPL. If you fork this project, replace them with your own program's branding.</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href="https://github.com/sphyx42/StatChart-Sim">GitHub</a>
+      <a href="https://github.com/sphyx42/StatChart-Sim/issues">Report a problem</a>
+    </nav>
+  </div>
+</footer>
 
 </body>
 </html>
